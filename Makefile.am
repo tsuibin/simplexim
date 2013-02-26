@@ -1,29 +1,41 @@
-# vim:set noet ts=4:
-#
-# ibus - The Input Bus
-#
-# Copyright (c) 2007-2010 Peng Huang <shawn.p.huang@gmail.com>
-# Copyright (c) 2007-2010 Red Hat, Inc.
-#
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 2 of the License, or (at your option) any later version.
-#
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public
-# License along with this program; if not, write to the
-# Free Software Foundation, Inc., 59 Temple Place, Suite 330,
-# Boston, MA  02111-1307  USA
-
-if ENABLE_XIM
-SUBDIRS = \
+SUBDIRS =  \
 	IMdkit \
 	$(NULL)
-endif
+	
+INCLUDES =					\
+	-I$(top_dir)			\
+	-I$(top_dir)/IMdkit		\
+	-I$(top_builddir)			\
+	-I$(top_builddir)/IMdkit	\
+	$(NULL)
 
--include $(top_srcdir)/git.mk
+AM_CFLAGS =				\
+	@X11_CFLAGS@		\
+	@GLIB_CFLAGS@		\
+	@GOBJECT_CFLAGS@	\
+	$(INCLUDES)			\
+	$(NULL)
+
+libIMdkit = $(top_builddir)/IMdkit/libIMdkit.la
+AM_LDADD = \
+	@X11_LIBS@	\
+	@GLIB_LIBS@	\
+	@GOBJECT_LIBS@	\
+	$(libIMdkit)	\
+	$(NULL)
+
+
+bin_PROGRAMS = simplexim
+
+simplexim_SOURCES = 		\
+	main.c			\
+	simplexim.c		\
+	simplewindow.c 	\
+	$(NULL)
+
+simplexim_LDADD = 	\
+	$(AM_LDADD)
+	$(NULL)
+
+
+
