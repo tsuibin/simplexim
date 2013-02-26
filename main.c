@@ -16,6 +16,15 @@ int	 g_root_window;
 int
 main (int argc, char** argv)
 {
+    for(int i = 0; i < argc; i++)
+    {
+	if (g_strcmp0 (argv[i], "-d")||
+	    g_strcmp0 (argv[i], "--debug"))
+	{
+	    g_setenv ("G_MESSAGES_DEBUG", "all", FALSE);
+	}
+    }
+    g_debug ("GLib debug is enbaled");
     g_display = XOpenDisplay (NULL);
     if (!g_display)
     {
@@ -28,5 +37,5 @@ main (int argc, char** argv)
     g_root_window = RootWindow(g_display, g_screen);
 
     xim_init ();
-
+    event_loop ();
 }

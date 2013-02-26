@@ -3,8 +3,8 @@ SUBDIRS =  \
 	$(NULL)
 	
 INCLUDES =					\
-	-I$(top_dir)			\
-	-I$(top_dir)/IMdkit		\
+	-I$(top_srcdir)			\
+	-I$(top_srcdir)/IMdkit		\
 	-I$(top_builddir)			\
 	-I$(top_builddir)/IMdkit	\
 	$(NULL)
