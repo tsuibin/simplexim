@@ -29,5 +29,3 @@ noinst_HEADERS = \
 libIMdkit_la_CFLAGS = \
 	@X11_CFLAGS@ \
 	$(NULL)
-
--include $(top_srcdir)/git.mk

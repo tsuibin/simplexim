@@ -4,6 +4,14 @@
 #ifndef _SIMPLE_XIM_H
 #define _SIMPLE_XIM_H
 
+#include <glib.h>
+
+#include <X11/Xlib.h>
+//IMdkit
+#include <IMdkit.h>
+#include <Xi18n.h>
+
+
 //type defs
 //1. a client connection to the IM server
 typedef struct _SimpleConn SimpleConn;
@@ -30,17 +38,16 @@ struct _SimpleIC
     //4. Preedit attributes
     gboolean         has_preedit_area;
     XRectangle	     preedit_area;
-
-    //others
-    IBusInputContext *context;
-    gchar           *lang;
-
-    gchar           *preedit_string;
-    IBusAttrList    *preedit_attrs;
     gint             preedit_cursor;
-    gboolean         preedit_visible;
     gboolean         preedit_started;
+    gboolean         preedit_visible;
     gint             onspot_preedit_length;
+    gchar           *preedit_string;
+    //others
+    //IBusInputContext *context;
+    //gchar           *lang;
+
+    //IBusAttrList    *preedit_attrs;
 };
 
 //Globals
@@ -61,7 +68,9 @@ extern Window g_server_window;// window created by XIM server
 
 //simplexim.c
 extern void xim_init ();
+
 //simplewindow.c
+extern void event_loop ();
 extern void create_server_window ();
 
 #endif

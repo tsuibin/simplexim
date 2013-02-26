@@ -19,3 +19,33 @@ create_server_window ()
 				     mask, &attr);
 
 }
+
+
+//an event loop
+void 
+event_loop ()
+{
+    XEvent event;
+
+    while(1) 
+    {
+	//1. check exit status
+	
+	//2
+        XNextEvent(g_display, &event);
+	if (XFilterEvent(&event, None) == True)
+            continue;
+
+	switch (event.type)
+       	{
+	case Expose:
+	    break;
+	case GraphicsExpose:
+	    break;
+	case ConfigureNotify:
+	    break;
+	case ClientMessage:
+	    break;
+        }
+    }
+}

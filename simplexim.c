@@ -22,6 +22,7 @@ Window g_server_window = None;
 char   g_xim_name [128];
 char   g_locale_ctype [128];
 
+XIMS g_xims;
 // XIM support for styles, here we implement a -on-the-spot IM
 XIMStyles g_ims_styles;
 XIMEncodings g_ims_encodings;
@@ -47,15 +48,15 @@ static int ims_protocol_handler (XIMS xims, IMProtocol *call_data);
 static int xim_open_handler (XIMS xims, IMOpenStruct *call_data);
 static int xim_close_handler(XIMS ims, IMCloseStruct *call_data);
 static int xim_disconnect_ic_handler (XIMS xims, IMDisConnectStruct *call_data);
-static int xim_create_ic_handler(XIMS ims, IMChangeICStruct *call_data, int *icid);
-static int xim_destroy_ic_handler(XIMS ims, IMDestroyICStruct *call_data, int *icid);
-static int xim_set_ic_values_handler(XIMS ims, IMChangeICStruct *call_data, int *icid);
-static int xim_get_ic_values_handler(XIMS ims, IMChangeICStruct *call_data, int *icid);
-static int xim_forward_event_handler(XIMS ims, IMForwardEventStruct *call_data, int *icid);
-static int xim_set_ic_focus_handler(XIMS ims, IMChangeFocusStruct *call_data, int *icid);
-static int xim_unset_ic_focus_handler(XIMS ims, IMChangeFocusStruct *call_data, int *icid);
-//static int xim_trigger_handler(XIMS ims, IMTriggerNotifyStruct *call_data, int *icid);
-//static int xim_sync_reply_handler(XIMS ims, IMSyncXlibStruct *call_data, int *icid)
+static int xim_create_ic_handler(XIMS ims, IMChangeICStruct *call_data);
+static int xim_destroy_ic_handler(XIMS ims, IMDestroyICStruct *call_data);
+static int xim_set_ic_values_handler(XIMS ims, IMChangeICStruct *call_data);
+static int xim_get_ic_values_handler(XIMS ims, IMChangeICStruct *call_data);
+static int xim_forward_event_handler(XIMS ims, IMForwardEventStruct *call_data);
+static int xim_set_ic_focus_handler(XIMS ims, IMChangeFocusStruct *call_data);
+static int xim_unset_ic_focus_handler(XIMS ims, IMChangeFocusStruct *call_data);
+//static int xim_trigger_handler(XIMS ims, IMTriggerNotifyStruct *call_data);
+//static int xim_sync_reply_handler(XIMS ims, IMSyncXlibStruct *call_data);
 
 static inline void set_xim_name ();
 static inline void set_local_ctype ();
@@ -97,6 +98,7 @@ xim_init ()
 static int
 ims_protocol_handler (XIMS xims, IMProtocol *call_data)
 {
+    g_debug ("ims_protocol_handler is called");
     if (xims == NULL || call_data == NULL)
 	return True;
 
@@ -110,7 +112,7 @@ ims_protocol_handler (XIMS xims, IMProtocol *call_data)
     case XIM_CREATE_IC:
         return xim_create_ic_handler (xims, (IMChangeICStruct *)call_data);
     case XIM_DESTROY_IC:
-        return xim_destroy_ic_handler (xims, (IMChangeICStruct *)call_data);
+        return xim_destroy_ic_handler (xims, (IMDestroyICStruct *)call_data);
     case XIM_SET_IC_VALUES:
         return xim_set_ic_values_handler (xims, (IMChangeICStruct *)call_data);
     case XIM_GET_IC_VALUES:
@@ -183,7 +185,7 @@ xim_close_handler (XIMS ims, IMCloseStruct *call_data)
     g_list_free_full (conn->client_ics, _free_client_ic);
 
     g_hash_table_remove (connections_ht,
-                         GINT_TO_POINTER ((gint) connect_id));
+                         GINT_TO_POINTER ((gint) call_data->connect_id));
 
     g_slice_free (SimpleConn, conn);
 
@@ -257,7 +259,7 @@ _xim_store_ic_values (SimpleIC* simpleic, IMChangeICStruct *call_data)
  *	connection.
  */
 static int 
-xim_create_ic_handler (XIMS ims, IMChangeICStruct *call_data, int *icid)
+xim_create_ic_handler (XIMS ims, IMChangeICStruct *call_data)
 {
     static int base_icid = 1;
     SimpleIC* simpleic;
@@ -316,13 +318,13 @@ xim_create_ic_handler (XIMS ims, IMChangeICStruct *call_data, int *icid)
 
     g_hash_table_insert (ic_ht, GINT_TO_POINTER (simpleic->icid), (gpointer)simpleic);
 
-    simpleic->conn->clients = g_list_append (simpleic->conn->clients, (gpointer)simpleic);
+    simpleic->conn->client_ics = g_list_append (simpleic->conn->client_ics, (gpointer)simpleic);
 
     return True;
 }
 
 static int 
-xim_destroy_ic_handler(XIMS ims, IMDestroyICStruct *call_data, int *icid)
+xim_destroy_ic_handler(XIMS ims, IMDestroyICStruct *call_data)
 {
     g_debug ("request: XIM_DESTROY_IC ic=%d connect_id=%d",
              call_data->icid, call_data->connect_id);
@@ -341,7 +343,7 @@ xim_destroy_ic_handler(XIMS ims, IMDestroyICStruct *call_data, int *icid)
 #endif
 
     g_hash_table_remove (ic_ht, GINT_TO_POINTER ((gint) call_data->icid));
-    simpleic->conn->clients = g_list_remove (simpleic->conn->clients, (gconstpointer)simpleic);
+    simpleic->conn->client_ics = g_list_remove (simpleic->conn->client_ics, (gconstpointer)simpleic);
 #if 0
     g_free (x11ic->preedit_string);
     x11ic->preedit_string = NULL;
@@ -360,7 +362,7 @@ xim_destroy_ic_handler(XIMS ims, IMDestroyICStruct *call_data, int *icid)
 static void
 _xim_set_cursor_location (SimpleIC* simpleic)
 {
-    g_return_if_fail (x11ic != NULL);
+    g_return_if_fail (simpleic != NULL);
 
     XRectangle preedit_area = simpleic->preedit_area;
 
@@ -377,14 +379,14 @@ _xim_set_cursor_location (SimpleIC* simpleic)
 	{
 	    XTranslateCoordinates (g_display, w, xwa.root,
                                    0, xwa.height,
-                                   &preedit_area.x, &preedit_area.y,
+                                   (int*)&preedit_area.x, (int*)&preedit_area.y,
                                    &child);
         }
         else 
 	{
 	    XTranslateCoordinates (g_display, w, xwa.root,
 				   preedit_area.x, preedit_area.y,
-                                   &preedit_area.x, &preedit_area.y,
+                                   (int*)&preedit_area.x, (int*)&preedit_area.y,
                                    &child);
         }
     }
@@ -398,7 +400,7 @@ _xim_set_cursor_location (SimpleIC* simpleic)
 }
 
 static int 
-xim_set_ic_values_handler (XIMS ims, IMChangeICStruct *call_data, int *icid)
+xim_set_ic_values_handler (XIMS ims, IMChangeICStruct *call_data)
 {
     g_debug ("request: XIM_SET_IC_VALUES ic=%d connect_id=%d",
              call_data->icid, call_data->connect_id);
@@ -416,7 +418,7 @@ xim_set_ic_values_handler (XIMS ims, IMChangeICStruct *call_data, int *icid)
 }
 
 static int 
-xim_get_ic_values_handler (XIMS ims, IMChangeICStruct *call_data, int *icid)
+xim_get_ic_values_handler (XIMS ims, IMChangeICStruct *call_data)
 {
     g_debug ("request: XIM_GET_IC_VALUES ic=%d connect_id=%d",
              call_data->icid, call_data->connect_id);
@@ -443,7 +445,7 @@ xim_get_ic_values_handler (XIMS ims, IMChangeICStruct *call_data, int *icid)
 }
 
 static int 
-xim_forward_event_handler (XIMS ims, IMForwardEventStruct *call_data, int *icid)
+xim_forward_event_handler (XIMS ims, IMForwardEventStruct *call_data)
 {
     g_debug ("request: XIM_FORWARD_EVENT ic=%d connect_id=%d",
              call_data->icid, call_data->connect_id);
@@ -451,7 +453,7 @@ xim_forward_event_handler (XIMS ims, IMForwardEventStruct *call_data, int *icid)
     gboolean retval;
 
     SimpleIC* simpleic;
-    simpleic= (SimplIC*) g_hash_table_lookup (ic_ht,
+    simpleic= (SimpleIC*) g_hash_table_lookup (ic_ht,
                                               GINT_TO_POINTER ((gint) call_data->icid));
     g_return_val_if_fail (simpleic != NULL, 0);
 
@@ -467,7 +469,6 @@ xim_forward_event_handler (XIMS ims, IMForwardEventStruct *call_data, int *icid)
     if (event.type == GDK_KEY_RELEASE) {
         event.state |= IBUS_RELEASE_MASK;
     }
-#endif
     if (_use_sync_mode) 
     {
         retval = ibus_input_context_process_key_event (
@@ -521,11 +522,12 @@ xim_forward_event_handler (XIMS ims, IMForwardEventStruct *call_data, int *icid)
                                       pfe);
         retval = 1;
     }
+#endif
     return retval;
 }
 
 static int 
-xim_set_ic_focus_handler (XIMS ims, IMChangeFocusStruct *call_data, int *icid)
+xim_set_ic_focus_handler (XIMS ims, IMChangeFocusStruct *call_data)
 {
     g_debug ("request: XIM_SET_IC_FOCUS ic=%d connect_id=%d",
              call_data->icid, call_data->connect_id);
@@ -538,12 +540,12 @@ xim_set_ic_focus_handler (XIMS ims, IMChangeFocusStruct *call_data, int *icid)
     ibus_input_context_focus_in (x11ic->context);
 #endif
 
-    _xim_set_cursor_location (x11ic);
+    _xim_set_cursor_location (simpleic);
 
     return True;
 }
 static int 
-xim_unset_ic_focus_handler (XIMS ims, IMChangeFocusStruct *call_data, int *icid)
+xim_unset_ic_focus_handler (XIMS ims, IMChangeFocusStruct *call_data)
 {
     g_debug ("request: XIM_UNSET_IC_FOCUS ic=%d connect_id=%d",
              call_data->icid, call_data->connect_id);
@@ -559,8 +561,8 @@ xim_unset_ic_focus_handler (XIMS ims, IMChangeFocusStruct *call_data, int *icid)
     return True;
 }
 
-//static int xim_trigger_handler(XIMS ims, IMTriggerNotifyStruct *call_data, int *icid);
-//static int xim_sync_reply_handler(XIMS ims, IMSyncXlibStruct *call_data, int *icid)
+//static int xim_trigger_handler(XIMS ims, IMTriggerNotifyStruct *call_data);
+//static int xim_sync_reply_handler(XIMS ims, IMSyncXlibStruct *call_data, icid)
 
 // inline functions
 static inline void 
