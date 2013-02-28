@@ -1,11 +1,24 @@
 #include <stdio.h>
 
 #include <X11/Xlib.h>
+#include <gtk/gtk.h>
 
-#include "simplexim.h"
+#include "dp-xims.h"
+#include "dp-xims-window.h"
+
+int 
+main (int argc, char **argv)
+{
+    gtk_init (&argc, &argv);
+    g_setenv ("G_MESSAGES_DEBUG", "all", FALSE);
+
+    dp_xims_init ();
+//event loop
+    dp_event_loop ();
+}
 
 
-
+#if 0
 Display* g_display = NULL;
 int	 g_screen = 0;
 Colormap g_colormap = 0;
@@ -16,15 +29,7 @@ int	 g_root_window;
 int
 main (int argc, char** argv)
 {
-    for(int i = 0; i < argc; i++)
-    {
-	if (g_strcmp0 (argv[i], "-d")||
-	    g_strcmp0 (argv[i], "--debug"))
-	{
-	    g_setenv ("G_MESSAGES_DEBUG", "all", FALSE);
-	}
-    }
-    g_debug ("GLib debug is enbaled");
+    g_setenv ("G_MESSAGES_DEBUG", "all", FALSE);
     g_display = XOpenDisplay (NULL);
     if (!g_display)
     {
@@ -38,4 +43,7 @@ main (int argc, char** argv)
 
     xim_init ();
     event_loop ();
+
+    return 0;
 }
+#endif

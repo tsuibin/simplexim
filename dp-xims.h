@@ -1,8 +1,5 @@
-/*
- *	
- */
-#ifndef _SIMPLE_XIM_H
-#define _SIMPLE_XIM_H
+#ifndef _DP_XIMS_H_
+#define _DP_XIMS_H_
 
 #include <glib.h>
 
@@ -11,7 +8,9 @@
 #include <IMdkit.h>
 #include <Xi18n.h>
 
+extern void dp_xims_init ();
 
+#if 0
 //type defs
 //1. a client connection to the IM server
 typedef struct _SimpleConn SimpleConn;
@@ -49,7 +48,7 @@ struct _SimpleIC
 
     //IBusAttrList    *preedit_attrs;
 };
-
+#if 0
 //Globals
 extern Display* g_display;
 extern int g_screen; //default screen
@@ -64,13 +63,7 @@ extern XIMS g_xims;
 extern Window g_server_window;// window created by XIM server
 #define DEFAULT_LOCALES_CTYPE "en,zh"
 #define DEFAULT_XIM_TRANSPORT "X/"
-
-
-//simplexim.c
-extern void xim_init ();
-
-//simplewindow.c
-extern void event_loop ();
-extern void create_server_window ();
-
 #endif
+#endif
+
+#endif //_DP_XIMS_H_

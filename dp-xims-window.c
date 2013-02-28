@@ -1,8 +1,11 @@
 #include <X11/Xlib.h>
 
-#include "simplexim.h"
+#include <gtk/gtk.h>
 
+#include "dp-xims.h"
+#include "dp-xims-window.h"
 
+#if 0
 void
 create_server_window ()
 {
@@ -17,14 +20,18 @@ create_server_window ()
 				     0, CopyFromParent,
 	                             InputOutput, CopyFromParent, 
 				     mask, &attr);
+    XMapWindow(g_display, g_server_window);
+    XFlush(g_display);
 
 }
-
+#endif
 
 //an event loop
 void 
-event_loop ()
+dp_event_loop ()
 {
+    gtk_main ();
+#if 0
     XEvent event;
 
     while(1) 
@@ -36,6 +43,7 @@ event_loop ()
 	if (XFilterEvent(&event, None) == True)
             continue;
 
+	g_debug ("we got events: %d", event.type);
 	switch (event.type)
        	{
 	case Expose:
@@ -48,4 +56,5 @@ event_loop ()
 	    break;
         }
     }
+#endif
 }

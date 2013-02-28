@@ -10,32 +10,31 @@ INCLUDES =					\
 	$(NULL)
 
 AM_CFLAGS =				\
-	@X11_CFLAGS@		\
 	@GLIB_CFLAGS@		\
 	@GOBJECT_CFLAGS@	\
+	@GTK3_CFLAGS@		\
+	@GTK3X11_CFLAGS@	\
 	$(INCLUDES)			\
 	$(NULL)
 
 libIMdkit = $(top_builddir)/IMdkit/libIMdkit.la
 AM_LDADD = \
-	@X11_LIBS@	\
 	@GLIB_LIBS@	\
 	@GOBJECT_LIBS@	\
+	@GTK3_LIBS@	\
+	@GTK3X11_LIBS@	\
 	$(libIMdkit)	\
 	$(NULL)
 
+# (xims -- XIM Server)
+bin_PROGRAMS = dp-xims 
 
-bin_PROGRAMS = simplexim
-
-simplexim_SOURCES = 		\
-	main.c			\
-	simplexim.c		\
-	simplewindow.c 	\
+dp_xims_SOURCES = 	\
+	main.c		\
+	dp-xims.c	\
+	dp-xims-window.c \
 	$(NULL)
 
-simplexim_LDADD = 	\
-	$(AM_LDADD)
+dp_xims_LDADD = 	\
+	$(AM_LDADD) 	\
 	$(NULL)
-
-
-

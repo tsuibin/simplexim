@@ -2,9 +2,9 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.68])
-AC_INIT([simplexim], [0.1], [hukang@linuxdeepin.com])
+AC_INIT([dp-xims], [0.1], [hukang@linuxdeepin.com])
 
-AC_CONFIG_SRCDIR([simplewindow.c])
+AC_CONFIG_SRCDIR([dp-xims.c])
 AC_CONFIG_HEADERS([config.h])
 
 AM_INIT_AUTOMAKE([1.11])
@@ -26,9 +26,10 @@ AC_CHECK_HEADERS([langinfo.h limits.h locale.h stdlib.h string.h sys/param.h])
 AC_C_INLINE
 
 # Checks for packages.
-PKG_CHECK_MODULES(X11, [x11])
 PKG_CHECK_MODULES(GLIB, [glib-2.0])
 PKG_CHECK_MODULES(GOBJECT, [gobject-2.0])
+PKG_CHECK_MODULES(GTK3, [gtk+-3.0])
+PKG_CHECK_MODULES(GTK3X11, [gtk+-x11-3.0])
 
 # Checks for library functions.
 AC_FUNC_MALLOC
