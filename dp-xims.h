@@ -1,33 +1,50 @@
 #ifndef _DP_XIMS_H_
 #define _DP_XIMS_H_
 
-#include <glib.h>
-
 #include <X11/Xlib.h>
 //IMdkit
 #include <IMdkit.h>
 #include <Xi18n.h>
 
-extern void dp_xims_init ();
+#include <gtk/gtk.h>
+/*
+ *	Macros
+ */
+#define DEFAULT_MODIFIERS	"Xi18n"
+#define DEFAULT_SERVER_NAME	"dp-xims"
+#define DEFAULT_LOCALE		"en,zh"
+#define DEFAULT_SERVER_TRANSPORT "X/"	//so XIM events are processed at XNextEvent.
 
-#if 0
-//type defs
-//1. a client connection to the IM server
-typedef struct _SimpleConn SimpleConn;
-struct _SimpleConn
+/*
+ *	type definitions
+ */
+//0. global data 
+typedef struct _DpXIMServerData DpXIMServerData;
+struct _DpXIMServerData
 {
-    GList* client_ics;   // a list of client Input Contexts for this connection.
+    XIMS	xims;
+    GdkDisplay* gdk_display;
+    GdkWindow*  server_window;
 };
+
+//1. a client connection to the IM server
+//   a list of client Input Contexts for this connection.
+typedef struct _DpXIMConnection DpXIMConnection;
+struct _DpXIMConnection
+{
+    GList* client_ics;   
+};
+
 //2. a Input Context created by the IM server for a specific client
-typedef struct _SimpleIC SimpleIC;
-struct _SimpleIC
+typedef struct _DpXIMIC DpXIMIC;
+struct _DpXIMIC
 {
     //1. connection
-    SimpleConn*	     conn;	//the connection this IC belongs
-    gint             connect_id;//the connection ID
+    DpXIMConnection*	connection; //the connection this IC belongs
+    gint                connect_id; //the connection ID
 
     //2. 
-    gint             icid;	//an identifier assigned by the IM server for this IC
+    gint                ic_id;	//an identifier assigned by the IM server for this IC
 
     //3. IC attributes
     gint32           input_style;  //XNInputStyle
@@ -43,27 +60,13 @@ struct _SimpleIC
     gint             onspot_preedit_length;
     gchar           *preedit_string;
     //others
-    //IBusInputContext *context;
     //gchar           *lang;
-
-    //IBusAttrList    *preedit_attrs;
 };
-#if 0
-//Globals
-extern Display* g_display;
-extern int g_screen; //default screen
-extern Colormap g_colormap; //default colormap
-extern int g_display_width;
-extern int g_display_height;
-extern int g_root_window;
-
-//IM related globals
-#define DEFAULT_XIM_NAME "simplexim"
-extern XIMS g_xims;
-extern Window g_server_window;// window created by XIM server
-#define DEFAULT_LOCALES_CTYPE "en,zh"
-#define DEFAULT_XIM_TRANSPORT "X/"
-#endif
-#endif
+/*
+ *	global variables	
+ */
+DpXIMServerData* dp_xims_data;
+//
+extern void dp_xims_init ();
 
 #endif //_DP_XIMS_H_
