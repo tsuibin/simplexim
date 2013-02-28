@@ -26,6 +26,8 @@ AC_CHECK_HEADERS([langinfo.h limits.h locale.h stdlib.h string.h sys/param.h])
 AC_C_INLINE
 
 # Checks for packages.
+#X11_CFLAGS, X11_LIBS is needed by IMdkit, don't remove the following line
+PKG_CHECK_MODULES(X11, [x11])
 PKG_CHECK_MODULES(GLIB, [glib-2.0])
 PKG_CHECK_MODULES(GOBJECT, [gobject-2.0])
 PKG_CHECK_MODULES(GTK3, [gtk+-3.0])

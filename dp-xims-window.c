@@ -1,9 +1,31 @@
 #include <X11/Xlib.h>
 
+#include <gdk/gdkx.h>
 #include <gtk/gtk.h>
 
 #include "dp-xims.h"
 #include "dp-xims-window.h"
+
+GdkWindow*
+dp_xims_window_new ()
+{
+    GdkWindowAttr window_attr = {
+        .title              = "dp-xim",
+        .event_mask         = GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK,
+        .wclass             = GDK_INPUT_OUTPUT,
+        .window_type        = GDK_WINDOW_TOPLEVEL,
+        .override_redirect   = 1,
+    };
+    GdkWindow *win;
+    win = gdk_window_new (NULL, &window_attr, GDK_WA_TITLE);
+    return win;
+}
+
+Window
+dp_xims_window_get_xid (GdkWindow* win)
+{
+    return gdk_x11_window_get_xid (win);
+}
 
 #if 0
 void
